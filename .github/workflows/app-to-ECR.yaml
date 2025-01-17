@@ -13,20 +13,28 @@ jobs:
       # 1. Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v4
-      
+        
+     # 2. Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      # 3. Grant execute permission for Gradle Wrapper
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x ./gradlew
       
-      # 2. Create application.properties
+      #  4. Create application.properties
       - name: Create application.properties
         run: |
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
       
-      # 3. Set up Docker Buildx
+      # 5. Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      # 4. Configure AWS credentials
+      # 6. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -34,25 +42,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       
-      # 5. Build with Gradle
+      # 7. Build with Gradle
       - name: Build with Gradle
         run: ./gradlew clean build
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk
           GRADLE_OPTS: "-Dorg.gradle.daemon=false"
       
-      # 6. Login to Amazon ECR
+      # 8. Login to Amazon ECR
       - name: Login to Amazon ECR (Private)
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
           docker login --username AWS --password-stdin ${{ secrets.ECR_PRIVATE_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       
-      # 7. Build Docker image
+      # 9. Build Docker image
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.ECR_PRIVATE_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_PRIVATE_REPOSITORY }}:latest .
       
-      # 8. Push Docker image to Amazon ECR
+      # 10. Push Docker image to Amazon ECR
       - name: Push Docker image to Amazon ECR
         run: |
           docker push ${{ secrets.ECR_PRIVATE_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_PRIVATE_REPOSITORY }}:latest
