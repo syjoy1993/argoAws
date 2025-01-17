@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Grant execute permission for Gradle Wrapper
+        run: chmod +x ./gradlew
+      
       # 2. Create application.properties
       - name: Create application.properties
         run: |
