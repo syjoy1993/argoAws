@@ -11,56 +11,41 @@ jobs:
     
     steps:
       # 1. Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-     # 2. Set up JDK 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
+      
+      # 2. Set up JDK 17
+      - uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-          
-      # 3. Grant execute permission for Gradle Wrapper
-      - name: Grant execute permission for Gradle Wrapper
-        run: chmod +x ./gradlew
       
-      #  4. Create application.properties
-      - name: Create application.properties
-        run: |
-          echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
+      # 3. Grant execute permission for Gradle Wrapper
+      - run: chmod +x ./gradlew
+      
+      # 4. Create application.properties
+      - run: echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
       
       # 5. Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
       
       # 6. Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       
       # 7. Build with Gradle
-      - name: Build with Gradle
-        run: ./gradlew clean build
+      - run: ./gradlew clean build
         env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk
           GRADLE_OPTS: "-Dorg.gradle.daemon=false"
       
-      # 8. Login to Amazon ECR
-      - name: Login to Amazon ECR (Private)
-        run: |
+      # 8. Login to Amazon ECR and Build Docker Image
+      - run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
           docker login --username AWS --password-stdin ${{ secrets.ECR_PRIVATE_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-      
-      # 9. Build Docker image
-      - name: Build Docker image
-        run: |
           docker build -t ${{ secrets.ECR_PRIVATE_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_PRIVATE_REPOSITORY }}:latest .
       
-      # 10. Push Docker image to Amazon ECR
-      - name: Push Docker image to Amazon ECR
-        run: |
+      # 9. Push Docker Image to Amazon ECR
+      - run: |
           docker push ${{ secrets.ECR_PRIVATE_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_PRIVATE_REPOSITORY }}:latest
