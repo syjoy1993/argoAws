@@ -1,0 +1,3 @@
+[submodule "k8s-manifests"]
+	path = k8s-manifests
+	url = https://github.com/syjoy1993/argoAws-manifests.git
