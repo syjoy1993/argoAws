@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - # 1. Checkout Main Repository and Submodule
+      # 1. Checkout Main Repository and Submodule
       - name: Checkout Main Repository
         uses: actions/checkout@v4
         with:
